@@ -20,10 +20,6 @@ export function RotatingFashionCard({ title, images }: RotatingFashionCardProps)
     setCurrentIndex((prev) => (prev - 1 + images.length) % images.length)
   }
 
-  const handleCardClick = () => {
-    nextImage()
-  }
-
   if (images.length === 0) {
     return (
       <div className='bg-gradient-to-br from-gray-700 to-gray-800 rounded-xl h-72 flex items-center justify-center'>
@@ -33,10 +29,7 @@ export function RotatingFashionCard({ title, images }: RotatingFashionCardProps)
   }
 
   return (
-    <div
-      onClick={handleCardClick}
-      className='relative bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl overflow-hidden h-72 cursor-pointer group'
-    >
+    <div className='relative bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl overflow-hidden h-72 cursor-pointer group'>
       {/* Image */}
       <div className='absolute inset-0'>
         <Image
@@ -51,19 +44,21 @@ export function RotatingFashionCard({ title, images }: RotatingFashionCardProps)
       {/* Navigation Arrows */}
       <button
         onClick={(e) => {
+          e.preventDefault()
           e.stopPropagation()
           prevImage()
         }}
-        className='absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/50 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70'
+        className='absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/50 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70 z-10'
       >
         <ChevronLeft className='w-5 h-5' />
       </button>
       <button
         onClick={(e) => {
+          e.preventDefault()
           e.stopPropagation()
           nextImage()
         }}
-        className='absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/50 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70'
+        className='absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/50 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70 z-10'
       >
         <ChevronRight className='w-5 h-5' />
       </button>
@@ -78,6 +73,7 @@ export function RotatingFashionCard({ title, images }: RotatingFashionCardProps)
             <button
               key={index}
               onClick={(e) => {
+                e.preventDefault()
                 e.stopPropagation()
                 setCurrentIndex(index)
               }}
