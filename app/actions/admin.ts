@@ -110,3 +110,25 @@ export async function isUserAdmin() {
   
   return !!admin
 }
+
+export async function autoPromoteToAdmin(userId: string) {
+  // Check if already admin
+  const existingAdmin = await db
+    .select()
+    .from(adminUsers)
+    .where(eq(adminUsers.userId, userId))
+    .then(rows => rows[0] || null)
+
+  if (existingAdmin) return { success: true, alreadyAdmin: true }
+
+  // Auto-promote to admin
+  const id = `admin_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+  await db.insert(adminUsers).values({
+    id,
+    userId,
+    role: 'admin',
+    permissions: ['products', 'orders', 'users'],
+  })
+
+  return { success: true, alreadyAdmin: false }
+}
