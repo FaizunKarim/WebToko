@@ -6,7 +6,7 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  serverExternalPackages: ['better-auth', 'kysely'],
+  serverExternalPackages: ['better-auth'],
 }
 
 export default nextConfig
