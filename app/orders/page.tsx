@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { getMyOrders } from '@/app/actions/orders'
+import { getUserOrders } from '@/app/actions/orders'
 
 export default function OrdersPage() {
   const router = useRouter()
@@ -13,7 +13,7 @@ export default function OrdersPage() {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const data = await getMyOrders()
+        const data = await getUserOrders()
         setOrders(data)
       } catch (error) {
         console.error('[v0] Failed to fetch orders:', error)

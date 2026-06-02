@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { getAllProducts, deleteProduct } from '@/app/actions/products'
+import { getProducts, deleteProduct } from '@/app/actions/products'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
@@ -16,7 +16,7 @@ export default function AdminProductsPage() {
 
   async function loadProducts() {
     try {
-      const data = await getAllProducts()
+      const data = await getProducts()
       setProducts(data)
     } catch (error) {
       console.error('[v0] Error loading products:', error)

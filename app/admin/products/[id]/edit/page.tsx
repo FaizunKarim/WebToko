@@ -1,3 +1,5 @@
+'use client'
+
 import ProductForm from '@/components/product-form'
 import { useParams } from 'next/navigation'
 
