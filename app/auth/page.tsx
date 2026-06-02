@@ -83,9 +83,10 @@ export default function AdminAuthPage() {
     setLoading(true)
 
     try {
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
       await authClient.signIn.social({
         provider: 'google',
-        callbackURL: '/admin/products',
+        callbackURL: `${baseUrl}/admin/products`,
       })
     } catch (err: any) {
       setError(err.message ?? 'Gagal masuk dengan Google')

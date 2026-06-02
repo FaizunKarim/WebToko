@@ -44,9 +44,10 @@ export function AuthForm({ mode }: { mode: 'sign-in' | 'sign-up' }) {
     setLoading(true)
 
     try {
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
       await authClient.signIn.social({
         provider: 'google',
-        callbackURL: '/',
+        callbackURL: `${baseUrl}/`,
       })
     } catch (err: any) {
       setError(err.message ?? 'Failed to sign in with Google')
