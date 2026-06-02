@@ -173,14 +173,9 @@ export default function AdminAuthPage() {
 
               <button
                 type='submit'
-                disabled={loading}
-                className='w-full bg-gray-900 text-white py-2 rounded-lg hover:bg-gray-800 transition font-medium disabled:opacity-50'
+                className='w-full bg-gray-900 text-white py-2 rounded-lg hover:bg-gray-800 transition font-medium'
               >
-                {loading
-                  ? 'Tunggu...'
-                  : mode === 'signin'
-                    ? 'Masuk'
-                    : 'Daftar'}
+                {mode === 'signin' ? 'Masuk' : 'Daftar'}
               </button>
             </form>
 
