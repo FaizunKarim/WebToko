@@ -9,65 +9,14 @@ import {
   uniqueIndex,
 } from 'drizzle-orm/pg-core'
 
-// Better Auth tables (do not modify)
+// Users table
 export const user = pgTable('user', {
   id: text('id').primaryKey(),
   name: text('name'),
   email: text('email').notNull().unique(),
-  emailVerified: boolean('emailVerified').notNull().default(false),
-  image: text('image'),
+  password: text('password').notNull(),
+  role: text('role').notNull().default('user'),
   createdAt: timestamp('createdAt').notNull().defaultNow(),
-  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
-})
-
-export const session = pgTable(
-  'session',
-  {
-    id: text('id').primaryKey(),
-    expiresAt: timestamp('expiresAt').notNull(),
-    token: text('token').notNull().unique(),
-    createdAt: timestamp('createdAt').notNull().defaultNow(),
-    updatedAt: timestamp('updatedAt').notNull().defaultNow(),
-    userId: text('userId').notNull(),
-  },
-  (table) => ({
-    userIdIdx: foreignKey({ columns: [table.userId], foreignColumns: [user.id] }).onDelete(
-      'cascade'
-    ),
-  })
-)
-
-export const account = pgTable(
-  'account',
-  {
-    id: text('id').primaryKey(),
-    userId: text('userId').notNull(),
-    type: text('type').notNull(),
-    provider: text('provider').notNull(),
-    providerAccountId: text('providerAccountId').notNull(),
-    refreshToken: text('refreshToken'),
-    accessToken: text('accessToken'),
-    accessTokenExpiresAt: timestamp('accessTokenExpiresAt'),
-    refreshTokenExpiresAt: timestamp('refreshTokenExpiresAt'),
-    idToken: text('idToken'),
-    createdAt: timestamp('createdAt').notNull().defaultNow(),
-    updatedAt: timestamp('updatedAt').notNull().defaultNow(),
-  },
-  (table) => ({
-    userIdIdx: foreignKey({ columns: [table.userId], foreignColumns: [user.id] }).onDelete(
-      'cascade'
-    ),
-    providerIdx: uniqueIndex('account_provider_idx').on(table.provider, table.providerAccountId),
-  })
-)
-
-export const verification = pgTable('verification', {
-  id: text('id').primaryKey(),
-  identifier: text('identifier').notNull(),
-  value: text('value').notNull(),
-  expiresAt: timestamp('expiresAt').notNull(),
-  createdAt: timestamp('createdAt').notNull().defaultNow(),
-  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
 })
 
 // App tables
@@ -131,7 +80,7 @@ export const orders = pgTable(
     id: text('id').primaryKey(),
     userId: text('userId').notNull(),
     totalAmount: decimal('total_amount', { precision: 10, scale: 2 }).notNull(),
-    status: text('status').default('pending'), // pending, paid, processing, shipped, delivered
+    status: text('status').default('pending'),
     paymentMethod: text('payment_method'),
     paymentId: text('payment_id'),
     shippingAddress: text('shipping_address'),

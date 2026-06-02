@@ -1,19 +1,18 @@
 'use server'
 
-import { auth } from '@/lib/auth'
+import { getUser } from '@/lib/session'
 import { db } from '@/lib/db'
 import { orders, orderItems, cartItems, products, adminUsers } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
-import { headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { v4 as uuidv4 } from 'uuid'
 
 const snap = require('midtrans-client')
 
 async function getUserId() {
-  const session = await auth.api.getSession({ headers: await headers() })
-  if (!session?.user) throw new Error('Unauthorized')
-  return session.user.id
+  const session = await getUser()
+  if (!session?.id) throw new Error('Unauthorized')
+  return session.id
 }
 
 export async function createOrder(data: {
@@ -103,8 +102,8 @@ export async function generateMidtransToken(orderId: string) {
   if (!order) throw new Error('Order not found')
 
   // Get user session for email
-  const session = await auth.api.getSession({ headers: await headers() })
-  const userEmail = session?.user?.email || 'customer@example.com'
+  const session = await getUser()
+  const userEmail = session?.email || 'customer@example.com'
 
   try {
     const snap_api = new snap.Snap({
@@ -120,7 +119,7 @@ export async function generateMidtransToken(orderId: string) {
       },
       customer_details: {
         email: userEmail,
-        first_name: session?.user?.name || 'Customer',
+        first_name: session?.name || 'Customer',
       },
       enabled_payments: [
         'credit_card',

@@ -1,16 +1,15 @@
 'use server'
 
-import { auth } from '@/lib/auth'
+import { getUser } from '@/lib/session'
 import { db } from '@/lib/db'
 import { products } from '@/lib/db/schema'
 import { eq, desc } from 'drizzle-orm'
-import { headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 
 async function getUserId() {
-  const session = await auth.api.getSession({ headers: await headers() })
-  if (!session?.user) return null
-  return session.user.id
+  const session = await getUser()
+  if (!session?.id) return null
+  return session.id
 }
 
 export async function getProducts() {

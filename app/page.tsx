@@ -1,18 +1,17 @@
 import { redirect } from 'next/navigation'
-import { auth } from '@/lib/auth'
-import { headers } from 'next/headers'
+import { getUser, deleteSession } from '@/lib/session'
 import { getFeaturedProducts, seedProducts } from '@/app/actions/products'
 import { addToCart } from '@/app/actions/cart'
 import { categoryImages } from '@/lib/sample-products'
 import { HomeClient } from '@/components/home-client'
 
 export default async function HomePage() {
-  const session = await auth.api.getSession({ headers: await headers() })
+  const session = await getUser()
   const featuredProducts = await getFeaturedProducts(12)
 
   async function handleLogout() {
     'use server'
-    await auth.api.signOut({ headers: await headers() })
+    await deleteSession()
     redirect('/')
   }
 
@@ -41,7 +40,7 @@ export default async function HomePage() {
         onLogout={handleLogout}
         onAddToCart={handleAddToCart}
       />
-      {featuredProducts.length === 0 && session?.user && (
+      {featuredProducts.length === 0 && session?.id && (
         <div className='fixed bottom-8 right-8'>
           <form action={handleSeedProducts}>
             <button

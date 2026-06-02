@@ -1,14 +1,13 @@
-import { auth } from '@/lib/auth'
+import { getUser } from '@/lib/session'
 import { db } from '@/lib/db'
 import { orders, adminUsers } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
-import { headers } from 'next/headers'
 
 export async function GET() {
   try {
-    const session = await auth.api.getSession({ headers: await headers() })
+    const session = await getUser()
 
-    if (!session?.user) {
+    if (!session?.id) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -16,7 +15,7 @@ export async function GET() {
     const adminUser = await db
       .select()
       .from(adminUsers)
-      .where(eq(adminUsers.userId, session.user.id))
+      .where(eq(adminUsers.userId, session.id))
       .then((res) => res[0])
 
     if (!adminUser) {

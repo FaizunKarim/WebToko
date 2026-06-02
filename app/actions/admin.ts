@@ -1,23 +1,22 @@
 'use server'
 
-import { auth } from '@/lib/auth'
+import { getUser } from '@/lib/session'
 import { db } from '@/lib/db'
 import { user, adminUsers } from '@/lib/db/schema'
 import { eq, desc } from 'drizzle-orm'
-import { headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 
 async function getAdminUser() {
-  const session = await auth.api.getSession({ headers: await headers() })
-  if (!session?.user) return null
+  const session = await getUser()
+  if (!session?.id) return null
   
   const admin = await db
     .select()
     .from(adminUsers)
-    .where(eq(adminUsers.userId, session.user.id))
+    .where(eq(adminUsers.userId, session.id))
     .then(rows => rows[0] || null)
   
-  return admin ? { ...session.user, isAdmin: true, adminRole: admin.role } : null
+  return admin ? { ...session, isAdmin: true, adminRole: admin.role } : null
 }
 
 export async function getAllUsers() {
@@ -29,8 +28,6 @@ export async function getAllUsers() {
       id: user.id,
       name: user.name,
       email: user.email,
-      emailVerified: user.emailVerified,
-      image: user.image,
       createdAt: user.createdAt,
     })
     .from(user)
@@ -87,8 +84,8 @@ export async function demoteFromAdmin(userId: string) {
   if (!admin) throw new Error('Unauthorized - Admin access required')
   
   // Cannot demote yourself
-  const session = await auth.api.getSession({ headers: await headers() })
-  if (session?.user?.id === userId) {
+  const session = await getUser()
+  if (session?.id === userId) {
     throw new Error('Cannot demote yourself')
   }
   
@@ -99,13 +96,13 @@ export async function demoteFromAdmin(userId: string) {
 }
 
 export async function isUserAdmin() {
-  const session = await auth.api.getSession({ headers: await headers() })
-  if (!session?.user) return false
+  const session = await getUser()
+  if (!session?.id) return false
   
   const admin = await db
     .select()
     .from(adminUsers)
-    .where(eq(adminUsers.userId, session.user.id))
+    .where(eq(adminUsers.userId, session.id))
     .then(rows => rows[0] || null)
   
   return !!admin
