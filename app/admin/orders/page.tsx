@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { getUserOrders, updateOrderStatus } from '@/app/actions/orders'
 import Link from 'next/link'
-import { neon_run_sql } from '@/lib/db'
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<any[]>([])
@@ -18,9 +17,15 @@ export default function AdminOrdersPage() {
       // Query all orders for admin
       const result = await fetch('/api/admin/orders')
       const data = await result.json()
-      setOrders(data)
+      if (Array.isArray(data)) {
+        setOrders(data)
+      } else {
+        console.error('[v0] Error loading orders:', data)
+        setOrders([])
+      }
     } catch (error) {
       console.error('[v0] Error loading orders:', error)
+      setOrders([])
     } finally {
       setLoading(false)
     }
@@ -39,7 +44,7 @@ export default function AdminOrdersPage() {
   }
 
   if (loading) {
-    return <div className="p-8 text-center">Loading orders...</div>
+    return <div className="p-8 text-center text-gray-500">Memuat data pesanan...</div>
   }
 
   return (
@@ -65,10 +70,10 @@ export default function AdminOrdersPage() {
                     {order.id.substring(0, 8)}...
                   </td>
                   <td className="px-6 py-4">
-                    {new Date(order.createdAt).toLocaleDateString()}
+                    {new Date(order.createdAt).toLocaleDateString('id-ID')}
                   </td>
                   <td className="px-6 py-4 font-semibold">
-                    ${order.total_amount.toFixed(2)}
+                    Rp {Math.round(Number(order.totalAmount || order.total_amount || 0)).toLocaleString('id-ID')}
                   </td>
                   <td className="px-6 py-4">
                     <select
