@@ -1,6 +1,5 @@
 'use client'
 
-import { Navbar } from '@/components/navbar'
 import { FeaturedProductCard } from '@/components/featured-product-card'
 import { RotatingFashionCard } from '@/components/rotating-fashion-card'
 import Link from 'next/link'
@@ -30,13 +29,6 @@ export function HomeClient({
 }: HomeClientProps) {
   return (
     <div className='min-h-screen bg-white'>
-      {/* Navigation */}
-      <Navbar
-        userName={session?.user?.name || session?.user?.email}
-        showAuth={!!session?.user}
-        onLogout={onLogout}
-      />
-
       {/* Hero Section with Rotating Fashion Cards */}
       <div className='bg-gray-100 py-16'>
         <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>

@@ -10,20 +10,6 @@ export default async function CartPage() {
 
   return (
     <div className='min-h-screen bg-white'>
-      {/* Navigation */}
-      <nav className='border-b border-gray-200 sticky top-0 z-40 bg-white'>
-        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-          <div className='flex items-center justify-between h-16'>
-            <Link href='/' className='text-2xl font-bold text-gray-900'>
-              GERAI FASHION
-            </Link>
-            <Link href='/products' className='text-gray-700 hover:text-gray-900 font-medium'>
-              Belanja
-            </Link>
-          </div>
-        </div>
-      </nav>
-
       {/* Content */}
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12'>
         <h1 className='text-4xl font-bold text-gray-900 mb-12'>Keranjang Belanja</h1>

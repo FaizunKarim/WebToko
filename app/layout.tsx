@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Analytics } from '@vercel/analytics/next'
+import { NavbarWrapper } from '@/components/navbar-wrapper'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -21,6 +22,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="bg-white">
       <body className="font-sans antialiased bg-white text-gray-900">
+        <NavbarWrapper />
         {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>

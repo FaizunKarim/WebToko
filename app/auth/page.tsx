@@ -83,17 +83,6 @@ export default function AdminAuthPage() {
 
   return (
     <div className='min-h-screen bg-white flex flex-col'>
-      {/* Navigation */}
-      <nav className='border-b border-gray-200 bg-white'>
-        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-          <div className='flex items-center h-16'>
-            <Link href='/' className='text-2xl font-bold text-gray-900'>
-              GERAI FASHION
-            </Link>
-          </div>
-        </div>
-      </nav>
-
       {/* Main Content */}
       <div className='flex-1 flex items-center justify-center py-12 px-4'>
         <div className='w-full max-w-md'>

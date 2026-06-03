@@ -77,13 +77,6 @@ export default function AdminUsersPage() {
   if (loading) {
     return (
       <div className='min-h-screen bg-white'>
-        <nav className='bg-black'>
-          <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center'>
-            <Link href='/' className='text-xl font-bold text-white'>
-              GERAI FASHION
-            </Link>
-          </div>
-        </nav>
         <div className='p-8 text-center'>Memuat data pengguna...</div>
       </div>
     )
@@ -94,33 +87,28 @@ export default function AdminUsersPage() {
 
   return (
     <div className='min-h-screen bg-gray-50'>
-      {/* Navigation */}
-      <nav className='bg-black'>
+      {/* Admin Sub-Navigation */}
+      <nav className='bg-gray-900 border-b border-gray-800'>
         <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-          <div className='flex items-center justify-between h-16'>
-            <Link href='/' className='text-xl font-bold text-white'>
-              GERAI FASHION
+          <div className='flex items-center gap-4 h-10'>
+            <Link
+              href='/admin/products'
+              className='text-gray-300 hover:text-white font-medium text-sm'
+            >
+              Produk
             </Link>
-            <div className='flex items-center gap-4'>
-              <Link
-                href='/admin/products'
-                className='text-gray-300 hover:text-white font-medium text-sm'
-              >
-                Produk
-              </Link>
-              <Link
-                href='/admin/orders'
-                className='text-gray-300 hover:text-white font-medium text-sm'
-              >
-                Pesanan
-              </Link>
-              <Link
-                href='/admin/users'
-                className='text-white font-medium text-sm'
-              >
-                Pengguna
-              </Link>
-            </div>
+            <Link
+              href='/admin/orders'
+              className='text-gray-300 hover:text-white font-medium text-sm'
+            >
+              Pesanan
+            </Link>
+            <Link
+              href='/admin/users'
+              className='text-white font-medium text-sm'
+            >
+              Pengguna
+            </Link>
           </div>
         </div>
       </nav>
