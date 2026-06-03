@@ -1,5 +1,4 @@
 import { getUser } from '@/lib/session'
-import { isUserAdmin } from '@/app/actions/admin'
 import { AdminNavbar } from '@/components/admin-navbar'
 import { logout } from '@/app/actions/auth'
 import { redirect } from 'next/navigation'
@@ -10,9 +9,8 @@ export default async function AdminLayout({
   children: React.ReactNode
 }) {
   const session = await getUser()
-  const admin = await isUserAdmin()
 
-  if (!session || !admin) {
+  if (!session) {
     redirect('/sign-in')
   }
 

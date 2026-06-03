@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation'
 import { getUser, deleteSession } from '@/lib/session'
-import { isUserAdmin } from '@/app/actions/admin'
 import { getFeaturedProducts, seedProducts } from '@/app/actions/products'
 import { addToCart } from '@/app/actions/cart'
 import { categoryImages } from '@/lib/sample-products'
@@ -9,12 +8,9 @@ import { HomeClient } from '@/components/home-client'
 export default async function HomePage() {
   const session = await getUser()
   
-  // Redirect admin users to admin dashboard
+  // Redirect logged-in users to admin dashboard
   if (session) {
-    const admin = await isUserAdmin()
-    if (admin) {
-      redirect('/admin/products')
-    }
+    redirect('/admin/products')
   }
   
   const featuredProducts = await getFeaturedProducts(12)
@@ -44,24 +40,12 @@ export default async function HomePage() {
   return (
     <>
       <HomeClient
-        session={session}
+        session={null}
         featuredProducts={featuredProducts}
         categoryImages={categoryImages}
         onLogout={handleLogout}
         onAddToCart={handleAddToCart}
       />
-      {featuredProducts.length === 0 && session?.id && (
-        <div className='fixed bottom-8 right-8'>
-          <form action={handleSeedProducts}>
-            <button
-              type='submit'
-              className='bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg hover:bg-green-700 transition font-medium'
-            >
-              Seed 50 Produk Contoh
-            </button>
-          </form>
-        </div>
-      )}
     </>
   )
 }
