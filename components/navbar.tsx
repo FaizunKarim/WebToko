@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { Search, ShoppingCart, Menu, X, LogOut, User } from 'lucide-react'
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import Image from 'next/image'
 
 interface NavbarProps {
@@ -27,6 +27,12 @@ export function Navbar({ userName, userPhoto, showAuth = false, isAdmin = false,
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
   const router = useRouter()
+  const pathname = usePathname()
+
+  // Don't render navbar on auth pages
+  if (pathname === '/auth') {
+    return null
+  }
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
