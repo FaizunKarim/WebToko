@@ -29,8 +29,8 @@ export function Navbar({ userName, userPhoto, showAuth = false, isAdmin = false,
   const router = useRouter()
   const pathname = usePathname()
 
-  // Don't render navbar on auth pages
-  if (pathname === '/auth') {
+  // Don't render navbar on auth pages or admin pages
+  if (pathname === '/auth' || pathname.startsWith('/admin/') || pathname === '/admin') {
     return null
   }
 
