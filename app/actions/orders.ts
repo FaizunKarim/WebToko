@@ -3,7 +3,7 @@
 import { getUser } from '@/lib/session'
 import { db } from '@/lib/db'
 import { orders, orderItems, cartItems, products, adminUsers, user } from '@/lib/db/schema'
-import { eq, and } from 'drizzle-orm'
+import { eq, and, desc } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -251,6 +251,40 @@ export async function getUserOrders() {
     .where(eq(orders.userId, session.id))
 
   return userOrders
+}
+
+export async function getAdminOrders() {
+  const userId = await getUserId()
+
+  // Verify user is admin
+  let adminUser = await db
+    .select()
+    .from(adminUsers)
+    .where(eq(adminUsers.userId, userId))
+    .then((res) => res[0])
+
+  if (!adminUser) {
+    // Auto promote to admin
+    const id = `admin_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    try {
+      await db.insert(adminUsers).values({
+        id,
+        userId,
+        role: 'admin',
+        permissions: ['products', 'orders', 'users'],
+      })
+    } catch (err) {
+      console.error('Error auto promoting admin:', err)
+    }
+  }
+
+  // Get all orders descending by createdAt
+  const allOrders = await db
+    .select()
+    .from(orders)
+    .orderBy(desc(orders.createdAt))
+
+  return allOrders
 }
 
 export async function getOrderDetails(orderId: string) {

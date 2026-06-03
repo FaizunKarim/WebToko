@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { getUserOrders, updateOrderStatus } from '@/app/actions/orders'
+import { getAdminOrders, updateOrderStatus } from '@/app/actions/orders'
 import Link from 'next/link'
 
 export default function AdminOrdersPage() {
@@ -14,9 +14,8 @@ export default function AdminOrdersPage() {
 
   async function loadOrders() {
     try {
-      // Query all orders for admin
-      const result = await fetch('/api/admin/orders')
-      const data = await result.json()
+      // Query all orders directly using getAdminOrders server action
+      const data = await getAdminOrders()
       if (Array.isArray(data)) {
         setOrders(data)
       } else {
