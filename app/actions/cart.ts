@@ -8,12 +8,12 @@ import { revalidatePath } from 'next/cache'
 
 async function getUserId() {
   const session = await getUser()
-  if (!session?.id) throw new Error('Unauthorized')
-  return session.id
+  return session?.id || null
 }
 
 export async function getCartItems() {
   const userId = await getUserId()
+  if (!userId) return []
   return db
     .select({
       id: cartItems.id,
@@ -41,8 +41,8 @@ export async function addToCart(data: {
   color: string
 }) {
   const userId = await getUserId()
+  if (!userId) return
 
-  // Check if item already exists
   const existing = await db
     .select()
     .from(cartItems)
@@ -57,7 +57,6 @@ export async function addToCart(data: {
     .then(rows => rows[0] || null)
 
   if (existing) {
-    // Update quantity
     await db
       .update(cartItems)
       .set({
@@ -66,7 +65,6 @@ export async function addToCart(data: {
       })
       .where(eq(cartItems.id, existing.id))
   } else {
-    // Create new cart item
     const id = `cart_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     await db.insert(cartItems).values({
       id,
@@ -83,6 +81,7 @@ export async function addToCart(data: {
 
 export async function updateCartItem(cartItemId: string, quantity: number) {
   const userId = await getUserId()
+  if (!userId) return
 
   const item = await db
     .select()
@@ -90,9 +89,7 @@ export async function updateCartItem(cartItemId: string, quantity: number) {
     .where(eq(cartItems.id, cartItemId))
     .then(rows => rows[0] || null)
 
-  if (!item || item.userId !== userId) {
-    throw new Error('Unauthorized')
-  }
+  if (!item || item.userId !== userId) return
 
   if (quantity <= 0) {
     await db.delete(cartItems).where(eq(cartItems.id, cartItemId))
@@ -111,6 +108,7 @@ export async function updateCartItem(cartItemId: string, quantity: number) {
 
 export async function removeFromCart(cartItemId: string) {
   const userId = await getUserId()
+  if (!userId) return
 
   const item = await db
     .select()
@@ -118,9 +116,7 @@ export async function removeFromCart(cartItemId: string) {
     .where(eq(cartItems.id, cartItemId))
     .then(rows => rows[0] || null)
 
-  if (!item || item.userId !== userId) {
-    throw new Error('Unauthorized')
-  }
+  if (!item || item.userId !== userId) return
 
   await db.delete(cartItems).where(eq(cartItems.id, cartItemId))
   revalidatePath('/cart')
@@ -128,6 +124,7 @@ export async function removeFromCart(cartItemId: string) {
 
 export async function clearCart() {
   const userId = await getUserId()
+  if (!userId) return
   await db.delete(cartItems).where(eq(cartItems.userId, userId))
   revalidatePath('/cart')
 }

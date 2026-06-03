@@ -79,21 +79,27 @@ export function FeaturedProductCard({
     setAddingToCart(true)
     setError(null)
     try {
-      const res = await fetch('/api/cart/add', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const stored = localStorage.getItem('guest_cart')
+      let cart = stored ? JSON.parse(stored) : []
+
+      const existing = cart.findIndex((item: any) => item.productId === id)
+
+      if (existing >= 0) {
+        cart[existing].quantity += 1
+      } else {
+        cart.push({
+          id: `cart_${Date.now()}`,
           productId: id,
+          name,
+          price: Number(price),
+          imageUrl,
           size: 'M',
           color: 'Default',
           quantity: 1,
-        }),
-      })
-
-      if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.error || 'Gagal')
+        })
       }
+
+      localStorage.setItem('guest_cart', JSON.stringify(cart))
 
       setSuccess('Berhasil ditambahkan ke keranjang!')
       setTimeout(() => {

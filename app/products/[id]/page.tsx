@@ -36,22 +36,33 @@ export default function ProductDetailPage() {
     setAddingToCart(true)
     setMessage('')
     try {
-      const res = await fetch('/api/cart/add', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      // Save to localStorage (guest cart)
+      const stored = localStorage.getItem('guest_cart')
+      let cart = stored ? JSON.parse(stored) : []
+
+      const existing = cart.findIndex(
+        (item: any) =>
+          item.productId === product.id &&
+          item.size === selectedSize &&
+          item.color === selectedColor
+      )
+
+      if (existing >= 0) {
+        cart[existing].quantity += quantity
+      } else {
+        cart.push({
+          id: `cart_${Date.now()}`,
           productId: product.id,
+          name: product.name,
+          price: Number(product.price),
+          imageUrl: product.imageUrl,
           size: selectedSize,
           color: selectedColor,
           quantity,
-        }),
-      })
-
-      const data = await res.json()
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Gagal')
+        })
       }
+
+      localStorage.setItem('guest_cart', JSON.stringify(cart))
 
       setMessage('Berhasil ditambahkan ke keranjang!')
       setTimeout(() => setMessage(''), 3000)
