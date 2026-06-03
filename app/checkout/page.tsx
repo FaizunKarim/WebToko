@@ -1,175 +1,397 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { createOrder, generateMidtransToken } from '@/app/actions/orders'
-import { getCartItems } from '@/app/actions/cart'
-import { useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
+import { CreditCard, Building, Smartphone, Truck, ChevronDown, CheckCircle, ArrowLeft } from 'lucide-react'
 
-declare global {
-  interface Window {
-    snap?: {
-      pay(token: string, callbacks: any): void
-    }
-  }
+interface CartItem {
+  id: string
+  productId: string
+  name: string
+  price: number
+  imageUrl: string
+  size: string
+  color: string
+  quantity: number
 }
+
+const paymentMethods = [
+  {
+    id: 'bca',
+    name: 'Transfer BCA',
+    icon: Building,
+    description: 'Transfer ke rekening BCA',
+    details: 'Bank BCA - 1234567890 a.n. Novi Fashion',
+  },
+  {
+    id: 'mandiri',
+    name: 'Transfer Mandiri',
+    icon: Building,
+    description: 'Transfer ke rekening Mandiri',
+    details: 'Bank Mandiri - 9876543210 a.n. Novi Fashion',
+  },
+  {
+    id: 'bri',
+    name: 'Transfer BRI',
+    icon: Building,
+    description: 'Transfer ke rekening BRI',
+    details: 'Bank BRI - 5678901234 a.n. Novi Fashion',
+  },
+  {
+    id: 'gopay',
+    name: 'GoPay',
+    icon: Smartphone,
+    description: 'Bayar menggunakan GoPay',
+    details: 'Scan QR atau bayar langsung via GoPay',
+  },
+  {
+    id: 'ovo',
+    name: 'OVO',
+    icon: Smartphone,
+    description: 'Bayar menggunakan OVO',
+    details: 'Scan QR atau bayar langsung via OVO',
+  },
+  {
+    id: 'dana',
+    name: 'DANA',
+    icon: Smartphone,
+    description: 'Bayar menggunakan DANA',
+    details: 'Scan QR atau bayar langsung via DANA',
+  },
+  {
+    id: 'cod',
+    name: 'COD (Bayar di Tempat)',
+    icon: Truck,
+    description: 'Bayar saat barang diterima',
+    details: 'Tersedia untuk area Jabodetabek',
+  },
+  {
+    id: 'kartu',
+    name: 'Kartu Kredit',
+    icon: CreditCard,
+    description: 'Visa, Mastercard, JCB',
+    details: 'Pembayaran aman terenkripsi',
+  },
+]
 
 export default function CheckoutPage() {
   const router = useRouter()
-  const [cartItems, setCartItems] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [processing, setProcessing] = useState(false)
+  const [cartItems, setCartItems] = useState<CartItem[]>([])
+  const [loaded, setLoaded] = useState(false)
+  const [customerName, setCustomerName] = useState('')
+  const [customerPhone, setCustomerPhone] = useState('')
   const [shippingAddress, setShippingAddress] = useState('')
+  const [selectedPayment, setSelectedPayment] = useState('')
+  const [processing, setProcessing] = useState(false)
+  const [orderComplete, setOrderComplete] = useState(false)
+  const [orderId, setOrderId] = useState('')
 
   useEffect(() => {
-    loadCart()
-    // Load Midtrans SDK
-    const script = document.createElement('script')
-    script.src = 'https://app.midtrans.com/snap/snap.js'
-    script.setAttribute(
-      'data-client-key',
-      process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || ''
-    )
-    document.body.appendChild(script)
-
-    return () => {
-      document.body.removeChild(script)
+    const stored = localStorage.getItem('guest_cart')
+    if (stored) {
+      try {
+        const items = JSON.parse(stored)
+        setCartItems(items)
+      } catch {}
     }
+    setLoaded(true)
   }, [])
 
-  async function loadCart() {
-    try {
-      const items = await getCartItems()
-      setCartItems(items)
-    } catch (error) {
-      console.error('[v0] Error loading cart:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const totalAmount = cartItems.reduce(
-    (sum, item) => sum + item.product.price * item.quantity,
-    0
-  )
+  const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  const freeShipping = total > 500000
+  const grandTotal = freeShipping ? total : total + 50000
 
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    if (!customerName.trim()) {
+      alert('Silakan isi nama lengkap')
+      return
+    }
+
+    if (!customerPhone.trim()) {
+      alert('Silakan isi nomor telepon')
+      return
+    }
+
     if (!shippingAddress.trim()) {
-      alert('Please enter shipping address')
+      alert('Silakan isi alamat pengiriman')
+      return
+    }
+
+    if (!selectedPayment) {
+      alert('Silakan pilih metode pembayaran')
       return
     }
 
     setProcessing(true)
 
-    try {
-      // Create order
-      const { orderId } = await createOrder({
-        shippingAddress,
-        paymentMethod: 'midtrans',
-      })
+    // Simulate order processing
+    await new Promise(resolve => setTimeout(resolve, 1500))
 
-      // Generate Midtrans token
-      const { token } = await generateMidtransToken(orderId)
-
-      // Open Midtrans payment modal
-      if (window.snap) {
-        window.snap.pay(token, {
-          onSuccess: function (result: any) {
-            console.log('[v0] Payment success:', result)
-            router.push(`/orders/${orderId}?status=success`)
-          },
-          onPending: function (result: any) {
-            console.log('[v0] Payment pending:', result)
-            router.push(`/orders/${orderId}?status=pending`)
-          },
-          onError: function (result: any) {
-            console.error('[v0] Payment error:', result)
-            alert('Payment failed. Please try again.')
-          },
-          onClose: function () {
-            console.log('[v0] Payment modal closed')
-          },
-        })
-      }
-    } catch (error) {
-      console.error('[v0] Checkout error:', error)
-      alert('Checkout failed. Please try again.')
-    } finally {
-      setProcessing(false)
-    }
+    const id = `ORDER-${Date.now().toString(36).toUpperCase()}`
+    setOrderId(id)
+    setOrderComplete(true)
+    localStorage.removeItem('guest_cart')
+    setProcessing(false)
   }
 
-  if (loading) {
-    return <div className="p-8 text-center">Loading checkout...</div>
+  if (!loaded) {
+    return (
+      <div className='min-h-screen bg-white'>
+        <div className='max-w-4xl mx-auto px-4 py-12 text-center text-gray-500'>
+          Memuat...
+        </div>
+      </div>
+    )
+  }
+
+  if (orderComplete) {
+    return (
+      <div className='min-h-screen bg-white flex items-center justify-center'>
+        <div className='max-w-md mx-auto px-4 text-center'>
+          <div className='w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6'>
+            <CheckCircle className='w-10 h-10 text-green-600' />
+          </div>
+          <h1 className='text-3xl font-bold text-gray-900 mb-2'>Pesanan Berhasil!</h1>
+          <p className='text-gray-600 mb-6'>
+            Pesanan Anda telah berhasil dibuat. Silakan lakukan pembayaran sesuai metode yang dipilih.
+          </p>
+          <div className='bg-gray-50 border border-gray-200 rounded-xl p-6 mb-8'>
+            <p className='text-sm text-gray-500 mb-2'>Nomor Pesanan</p>
+            <p className='text-lg font-bold text-gray-900 font-mono'>{orderId}</p>
+          </div>
+
+          <>
+            {paymentMethods.find(p => p.id === selectedPayment)?.id !== 'cod' && (
+              <div className='bg-blue-50 border border-blue-200 rounded-xl p-6 mb-6 text-left'>
+                <h3 className='font-semibold text-blue-900 mb-3'>Informasi Pembayaran</h3>
+                <p className='text-sm text-blue-800'>
+                  {paymentMethods.find(p => p.id === selectedPayment)?.details}
+                </p>
+                <p className='text-sm text-blue-800 mt-2 font-semibold'>
+                  Total Pembayaran: Rp {Math.round(grandTotal).toLocaleString('id-ID')}
+                </p>
+              </div>
+            )}
+            <div className='bg-gray-50 border border-gray-200 rounded-xl p-6 mb-6 text-left'>
+              <h3 className='font-semibold text-gray-900 mb-3'>Data Pengiriman</h3>
+              <p className='text-sm text-gray-700'><span className='font-medium'>Nama:</span> {customerName}</p>
+              <p className='text-sm text-gray-700 mt-1'><span className='font-medium'>Telepon:</span> {customerPhone}</p>
+              <p className='text-sm text-gray-700 mt-1'><span className='font-medium'>Alamat:</span> {shippingAddress}</p>
+            </div>
+          </>
+
+          <div className='flex flex-col gap-3'>
+            <Link
+              href='/products'
+              className='bg-gray-900 text-white py-3 rounded-lg hover:bg-gray-800 transition font-semibold'
+            >
+              Lanjut Belanja
+            </Link>
+            <Link
+              href='/'
+              className='text-gray-600 hover:text-gray-900 font-medium'
+            >
+              ← Kembali ke Beranda
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   if (cartItems.length === 0) {
     return (
-      <div className="p-8 text-center">
-        <p className="mb-4">Your cart is empty</p>
-        <Link href="/products" className="text-blue-600 hover:underline">
-          Continue shopping
-        </Link>
+      <div className='min-h-screen bg-white'>
+        <div className='max-w-4xl mx-auto px-4 py-24 text-center'>
+          <div className='text-6xl mb-6'>🛒</div>
+          <p className='text-gray-600 text-lg mb-8'>Keranjang Anda kosong</p>
+          <Link
+            href='/products'
+            className='inline-block bg-gray-900 text-white px-8 py-3 rounded hover:bg-gray-800 transition font-medium'
+          >
+            Mulai Belanja
+          </Link>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="mx-auto max-w-2xl">
-        <h1 className="mb-8 text-3xl font-bold">Checkout</h1>
+    <div className='min-h-screen bg-gray-50'>
+      <div className='max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
+        {/* Header */}
+        <Link
+          href='/cart'
+          className='inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 font-medium mb-6'
+        >
+          <ArrowLeft className='w-4 h-4' />
+          Kembali ke Keranjang
+        </Link>
+        <h1 className='text-3xl font-bold text-gray-900 mb-8'>Checkout</h1>
 
-        <div className="mb-8 space-y-4 rounded-lg border p-6">
-          <h2 className="text-xl font-semibold">Order Summary</h2>
-          {cartItems.map((item) => (
-            <div key={item.id} className="flex justify-between border-b py-2">
-              <div>
-                <p className="font-medium">{item.product.name}</p>
-                <p className="text-sm text-gray-600">
-                  Size: {item.size} | Color: {item.color}
+        <form onSubmit={handleCheckout}>
+          <div className='grid lg:grid-cols-5 gap-8'>
+            {/* Left: Form */}
+            <div className='lg:col-span-3 space-y-6'>
+                {/* Data Pembeli */}
+                <div className='bg-white border border-gray-200 rounded-xl p-6'>
+                  <h2 className='text-lg font-semibold text-gray-900 mb-4'>
+                    Data Pembeli
+                  </h2>
+                  <div className='space-y-4'>
+                    <div>
+                      <label className='block text-sm font-medium text-gray-700 mb-2'>
+                        Nama Lengkap <span className='text-red-500'>*</span>
+                      </label>
+                      <input
+                        type='text'
+                        value={customerName}
+                        onChange={(e) => setCustomerName(e.target.value)}
+                        placeholder="John Doe"
+                        className='w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-900'
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className='block text-sm font-medium text-gray-700 mb-2'>
+                        Nomor Telepon <span className='text-red-500'>*</span>
+                      </label>
+                      <input
+                        type='tel'
+                        value={customerPhone}
+                        onChange={(e) => setCustomerPhone(e.target.value)}
+                        placeholder="081234567890"
+                        className='w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-900'
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className='block text-sm font-medium text-gray-700 mb-2'>
+                        Alamat Pengiriman <span className='text-red-500'>*</span>
+                      </label>
+                      <textarea
+                        value={shippingAddress}
+                        onChange={(e) => setShippingAddress(e.target.value)}
+                        placeholder="Alamat lengkap, kota, kode pos"
+                        className='w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-900'
+                        rows={3}
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+
+              {/* Metode Pembayaran */}
+              <div className='bg-white border border-gray-200 rounded-xl p-6'>
+                <h2 className='text-lg font-semibold text-gray-900 mb-4'>
+                  Metode Pembayaran
+                </h2>
+                <div className='space-y-3'>
+                  {paymentMethods.map((method) => {
+                    const Icon = method.icon
+                    const isSelected = selectedPayment === method.id
+                    return (
+                      <button
+                        key={method.id}
+                        type='button'
+                        onClick={() => setSelectedPayment(method.id)}
+                        className={`w-full flex items-center gap-4 p-4 rounded-lg border transition ${
+                          isSelected
+                            ? 'border-gray-900 bg-gray-50'
+                            : 'border-gray-200 hover:border-gray-400'
+                        }`}
+                      >
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                          isSelected ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'
+                        }`}>
+                          <Icon className='w-5 h-5' />
+                        </div>
+                        <div className='text-left'>
+                          <p className='font-medium text-gray-900'>{method.name}</p>
+                          <p className='text-sm text-gray-500'>{method.description}</p>
+                        </div>
+                        <div className={`ml-auto w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                          isSelected ? 'border-gray-900' : 'border-gray-300'
+                        }`}>
+                          {isSelected && <div className='w-3 h-3 rounded-full bg-gray-900' />}
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Right: Order Summary */}
+            <div className='lg:col-span-2'>
+              <div className='bg-white border border-gray-200 rounded-xl p-6 sticky top-24'>
+                <h2 className='text-lg font-semibold text-gray-900 mb-4'>
+                  Ringkasan Pesanan
+                </h2>
+
+                <div className='space-y-4 mb-6'>
+                  {cartItems.map((item) => (
+                    <div key={item.id} className='flex gap-3'>
+                      <div className='w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 relative'>
+                        {item.imageUrl ? (
+                          <Image src={item.imageUrl} alt={item.name} fill className='object-cover' />
+                        ) : (
+                          <div className='w-full h-full flex items-center justify-center text-gray-400'>-</div>
+                        )}
+                      </div>
+                      <div className='flex-1 min-w-0'>
+                        <p className='font-medium text-gray-900 text-sm truncate'>{item.name}</p>
+                        <p className='text-xs text-gray-500'>{item.size} | {item.color} | x{item.quantity}</p>
+                        <p className='font-semibold text-gray-900 text-sm mt-1'>
+                          Rp {Math.round(item.price * item.quantity).toLocaleString('id-ID')}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className='border-t border-gray-200 pt-4 space-y-3'>
+                  <div className='flex justify-between text-sm'>
+                    <span className='text-gray-600'>Subtotal</span>
+                    <span className='font-medium'>Rp {Math.round(total).toLocaleString('id-ID')}</span>
+                  </div>
+                  <div className='flex justify-between text-sm'>
+                    <span className='text-gray-600'>Ongkir</span>
+                    <span className='font-medium'>{freeShipping ? 'Gratis' : 'Rp 50.000'}</span>
+                  </div>
+                  {freeShipping && (
+                    <p className='text-xs text-green-600'>✓ Gratis ongkir untuk pembelian di atas Rp 500.000</p>
+                  )}
+                </div>
+
+                <div className='border-t border-gray-200 pt-4 mt-4'>
+                  <div className='flex justify-between items-center'>
+                    <span className='font-bold text-gray-900'>Total</span>
+                    <span className='font-bold text-xl text-gray-900'>
+                      Rp {Math.round(grandTotal).toLocaleString('id-ID')}
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  type='submit'
+                  disabled={processing}
+                  className='w-full bg-gray-900 text-white py-3 rounded-lg hover:bg-gray-800 transition font-semibold mt-6 disabled:opacity-50'
+                >
+                  {processing ? 'Memproses...' : 'Buat Pesanan'}
+                </button>
+
+                <p className='text-xs text-gray-500 text-center mt-4'>
+                  Dengan membuat pesanan, Anda menyetujui syarat & ketentuan yang berlaku
                 </p>
               </div>
-              <p className="font-medium">
-                ${(item.product.price * item.quantity).toFixed(2)}
-              </p>
             </div>
-          ))}
-          <div className="flex justify-between border-t pt-4 text-lg font-bold">
-            <span>Total:</span>
-            <span>${totalAmount.toFixed(2)}</span>
           </div>
-        </div>
-
-        <form onSubmit={handleCheckout} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              Shipping Address
-            </label>
-            <textarea
-              value={shippingAddress}
-              onChange={(e) => setShippingAddress(e.target.value)}
-              placeholder="Enter your complete shipping address"
-              className="w-full rounded-lg border p-3"
-              rows={4}
-              required
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={processing}
-            className="w-full rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700 disabled:bg-gray-400"
-          >
-            {processing ? 'Processing...' : 'Proceed to Payment'}
-          </button>
         </form>
-
-        <p className="mt-4 text-center text-sm text-gray-600">
-          You will be redirected to Midtrans payment gateway
-        </p>
       </div>
     </div>
   )
