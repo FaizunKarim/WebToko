@@ -11,7 +11,6 @@ interface FeaturedProductCardProps {
   imageUrl?: string
   category?: string
   description?: string
-  onAddToCart: (productId: string, size: string, color: string) => Promise<void>
 }
 
 export function FeaturedProductCard({
@@ -21,7 +20,6 @@ export function FeaturedProductCard({
   imageUrl,
   category,
   description,
-  onAddToCart,
 }: FeaturedProductCardProps) {
   const [showTryOnModal, setShowTryOnModal] = useState(false)
   const [userImage, setUserImage] = useState<string | null>(null)
@@ -81,7 +79,22 @@ export function FeaturedProductCard({
     setAddingToCart(true)
     setError(null)
     try {
-      await onAddToCart(id, 'M', 'Default')
+      const res = await fetch('/api/cart/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId: id,
+          size: 'M',
+          color: 'Default',
+          quantity: 1,
+        }),
+      })
+
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Gagal')
+      }
+
       setSuccess('Berhasil ditambahkan ke keranjang!')
       setTimeout(() => {
         setSuccess(null)

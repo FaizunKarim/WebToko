@@ -8,8 +8,6 @@ interface HomeClientProps {
   session: any
   featuredProducts: any[]
   categoryImages: Record<string, { src: string; alt: string }[]>
-  onLogout: () => Promise<void>
-  onAddToCart: (productId: string, size: string, color: string) => Promise<void>
 }
 
 const categories = [
@@ -24,8 +22,6 @@ export function HomeClient({
   session,
   featuredProducts,
   categoryImages,
-  onLogout,
-  onAddToCart,
 }: HomeClientProps) {
   return (
     <div className='min-h-screen bg-white'>
@@ -99,7 +95,6 @@ export function HomeClient({
                 imageUrl={product.imageUrl || undefined}
                 category={product.category || undefined}
                 description={product.description || undefined}
-                onAddToCart={onAddToCart}
               />
             ))}
           </div>

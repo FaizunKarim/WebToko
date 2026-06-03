@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { getProductById } from '@/app/actions/products'
-import { addToCart } from '@/app/actions/cart'
 import Link from 'next/link'
 import Image from 'next/image'
 
@@ -37,12 +36,23 @@ export default function ProductDetailPage() {
     setAddingToCart(true)
     setMessage('')
     try {
-      await addToCart({
-        productId: product.id,
-        size: selectedSize,
-        color: selectedColor,
-        quantity,
+      const res = await fetch('/api/cart/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId: product.id,
+          size: selectedSize,
+          color: selectedColor,
+          quantity,
+        }),
       })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Gagal')
+      }
+
       setMessage('Berhasil ditambahkan ke keranjang!')
       setTimeout(() => setMessage(''), 3000)
     } catch (err) {
@@ -77,7 +87,6 @@ export default function ProductDetailPage() {
 
   return (
     <div className='min-h-screen bg-white'>
-      {/* Content */}
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12'>
         <Link
           href='/products'
