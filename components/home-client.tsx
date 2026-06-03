@@ -129,9 +129,9 @@ export function HomeClient({
             <div>
               <h4 className='font-semibold mb-4'>Bantuan</h4>
               <ul className='text-gray-400 text-sm space-y-2'>
-                <li><a href='#' className='hover:text-white'>Tentang Pengiriman</a></li>
-                <li><a href='#' className='hover:text-white'>Kebijakan Pengembalian</a></li>
-                <li><a href='#' className='hover:text-white'>FAQ</a></li>
+                <li><Link href='/shipping' className='hover:text-white'>Tentang Pengiriman</Link></li>
+                <li><Link href='/returns' className='hover:text-white'>Kebijakan Pengembalian</Link></li>
+                <li><Link href='/faq' className='hover:text-white'>FAQ</Link></li>
               </ul>
             </div>
             <div>
