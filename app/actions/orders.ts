@@ -150,7 +150,11 @@ export async function createOrder(data: {
   return { orderId, totalAmount: grandTotal }
 }
 
-export async function generateMidtransToken(orderId: string, customerData?: { name?: string; phone?: string }) {
+export async function generateMidtransToken(
+  orderId: string,
+  customerData?: { name?: string; phone?: string },
+  paymentMethod?: string
+) {
   const userId = await getUserId()
 
   // Get order
@@ -167,6 +171,34 @@ export async function generateMidtransToken(orderId: string, customerData?: { na
   const userEmail = session?.email || 'customer@example.com'
   const customerName = customerData?.name || session?.name || 'Customer'
   const customerPhone = customerData?.phone || '081234567890'
+
+  let enabled_payments: string[] = []
+  if (paymentMethod === 'bca_va') {
+    enabled_payments = ['bca_va']
+  } else if (paymentMethod === 'bni_va') {
+    enabled_payments = ['bni_va']
+  } else if (paymentMethod === 'bri_va') {
+    enabled_payments = ['bri_va']
+  } else if (paymentMethod === 'gopay') {
+    enabled_payments = ['gopay']
+  } else if (paymentMethod === 'shopeepay') {
+    enabled_payments = ['shopeepay']
+  } else if (paymentMethod === 'credit_card') {
+    enabled_payments = ['credit_card']
+  } else if (paymentMethod === 'indomaret') {
+    enabled_payments = ['indomaret']
+  } else if (paymentMethod === 'alfamart') {
+    enabled_payments = ['alfamart']
+  } else {
+    enabled_payments = [
+      'credit_card',
+      'bca_va',
+      'bni_va',
+      'bri_va',
+      'gopay',
+      'shopeepay'
+    ]
+  }
 
   try {
     const snap_api = new snap.Snap({
@@ -195,14 +227,7 @@ export async function generateMidtransToken(orderId: string, customerData?: { na
           address: order.shippingAddress || '',
         }
       },
-      enabled_payments: [
-        'credit_card',
-        'bank_transfer',
-        'gopay',
-        'shopeepay',
-        'indomaret',
-        'alfamart'
-      ],
+      enabled_payments,
     }
 
     const transaction = await snap_api.createTransaction(parameter)

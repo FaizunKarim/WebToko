@@ -28,11 +28,46 @@ interface CartItem {
 
 const paymentMethods = [
   {
-    id: 'midtrans',
-    name: 'Pembayaran Online (Midtrans)',
+    id: 'bca_va',
+    name: 'Transfer Virtual Account BCA',
+    icon: Building,
+    description: 'Bayar instan via Virtual Account BCA',
+    details: 'Pembayaran instan langsung diverifikasi otomatis secara real-time',
+  },
+  {
+    id: 'bni_va',
+    name: 'Transfer Virtual Account BNI',
+    icon: Building,
+    description: 'Bayar instan via Virtual Account BNI',
+    details: 'Pembayaran instan langsung diverifikasi otomatis secara real-time',
+  },
+  {
+    id: 'bri_va',
+    name: 'Transfer Virtual Account BRI',
+    icon: Building,
+    description: 'Bayar instan via Virtual Account BRI',
+    details: 'Pembayaran instan langsung diverifikasi otomatis secara real-time',
+  },
+  {
+    id: 'gopay',
+    name: 'GoPay / QRIS',
+    icon: Smartphone,
+    description: 'Scan QR Code menggunakan GoPay atau e-wallet lainnya',
+    details: 'Pembayaran langsung diverifikasi secara otomatis',
+  },
+  {
+    id: 'shopeepay',
+    name: 'ShopeePay',
+    icon: Smartphone,
+    description: 'Bayar menggunakan ShopeePay',
+    details: 'Pembayaran langsung diverifikasi secara otomatis',
+  },
+  {
+    id: 'credit_card',
+    name: 'Kartu Kredit / Debit',
     icon: CreditCard,
-    description: 'Kartu Kredit, GoPay, Transfer Bank, ShopeePay, dll',
-    details: 'Pembayaran aman otomatis diverifikasi secara real-time',
+    description: 'Visa, Mastercard, JCB, dll',
+    details: 'Pembayaran aman terenkripsi 3D Secure',
   },
   {
     id: 'cod',
@@ -51,7 +86,7 @@ export default function CheckoutPage() {
   const [customerName, setCustomerName] = useState('')
   const [customerPhone, setCustomerPhone] = useState('')
   const [shippingAddress, setShippingAddress] = useState('')
-  const [selectedPayment, setSelectedPayment] = useState('midtrans')
+  const [selectedPayment, setSelectedPayment] = useState('bca_va')
   const [processing, setProcessing] = useState(false)
   const [orderComplete, setOrderComplete] = useState(false)
   const [orderId, setOrderId] = useState('')
@@ -130,12 +165,12 @@ export default function CheckoutPage() {
 
       const newOrderId = orderRes.orderId
 
-      // 2. If Payment Method is Midtrans, generate Token and launch Snap UI
-      if (selectedPayment === 'midtrans') {
+      // 2. If Payment Method is not COD, generate Token and launch Snap UI with dynamic payment selection
+      if (selectedPayment !== 'cod') {
         const midtransRes = await generateMidtransToken(newOrderId, {
           name: customerName,
           phone: customerPhone
-        })
+        }, selectedPayment)
 
         if (!midtransRes?.token) {
           throw new Error('Gagal mendapatkan token pembayaran Midtrans')
