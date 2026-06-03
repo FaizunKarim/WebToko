@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { getUser, deleteSession } from '@/lib/session'
+import { isUserAdmin } from '@/app/actions/admin'
 import { getFeaturedProducts, seedProducts } from '@/app/actions/products'
 import { addToCart } from '@/app/actions/cart'
 import { categoryImages } from '@/lib/sample-products'
@@ -7,6 +8,15 @@ import { HomeClient } from '@/components/home-client'
 
 export default async function HomePage() {
   const session = await getUser()
+  
+  // Redirect admin users to admin dashboard
+  if (session) {
+    const admin = await isUserAdmin()
+    if (admin) {
+      redirect('/admin/products')
+    }
+  }
+  
   const featuredProducts = await getFeaturedProducts(12)
 
   async function handleLogout() {

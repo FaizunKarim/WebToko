@@ -1,37 +1,28 @@
 'use client'
 
 import Link from 'next/link'
-import { Search, ShoppingCart, Menu, X, LogOut, User } from 'lucide-react'
+import { Search, Menu, X, LogOut, User, Package, Users, ShoppingBag, LayoutDashboard } from 'lucide-react'
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import Image from 'next/image'
 
-interface NavbarProps {
+interface AdminNavbarProps {
   userName?: string | null
   userPhoto?: string | null
-  showAuth?: boolean
-  isAdmin?: boolean
   onLogout?: () => void
 }
 
-const categories = [
-  { name: 'Pria', href: '/products?category=pria' },
-  { name: 'Wanita', href: '/products?category=wanita' },
-  { name: 'Anak', href: '/products?category=anak' },
-  { name: 'Olahraga', href: '/products?category=olahraga' },
-  { name: 'Aksesoris', href: '/products?category=aksesoris' },
-]
-
-export function Navbar({ userName, userPhoto, showAuth = false, isAdmin = false, onLogout }: NavbarProps) {
+export function AdminNavbar({ userName, userPhoto, onLogout }: AdminNavbarProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
   const router = useRouter()
+  const pathname = usePathname()
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     if (searchQuery.trim()) {
-      router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`)
+      router.push(`/admin/products?search=${encodeURIComponent(searchQuery.trim())}`)
     }
   }
 
@@ -41,26 +32,40 @@ export function Navbar({ userName, userPhoto, showAuth = false, isAdmin = false,
     }
   }
 
+  const adminLinks = [
+    { name: 'Produk', href: '/admin/products', icon: Package },
+    { name: 'Pesanan', href: '/admin/orders', icon: ShoppingBag },
+    { name: 'Pengguna', href: '/admin/users', icon: Users },
+  ]
+
   return (
-    <nav className='bg-black sticky top-0 z-50'>
+    <nav className='bg-gray-900 sticky top-0 z-50'>
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
         <div className='flex items-center justify-between h-16'>
           {/* Logo */}
-          <Link href={isAdmin ? '/admin/products' : '/'} className='shrink-0'>
-            <Image src='/novi.png' alt='Novi' width={120} height={40} className='h-10 w-auto' />
+          <Link href='/admin/products' className='shrink-0 flex items-center gap-2'>
+            <Image src='/novi.png' alt='Novi' width={100} height={34} className='h-8 w-auto' />
+            <span className='text-xs bg-blue-600 text-white px-2 py-0.5 rounded font-medium'>Admin</span>
           </Link>
 
-          {/* Desktop Navigation */}
+          {/* Desktop Admin Navigation */}
           <div className='hidden md:flex items-center gap-6'>
-            {categories.map((category) => (
-              <Link
-                key={category.name}
-                href={category.href}
-                className='text-gray-300 hover:text-white font-medium transition text-sm'
-              >
-                {category.name}
-              </Link>
-            ))}
+            {adminLinks.map((link) => {
+              const Icon = link.icon
+              const isActive = pathname.startsWith(link.href)
+              return (
+                <Link
+                  key={link.name}
+                  href={link.href}
+                  className={`flex items-center gap-1.5 font-medium transition text-sm ${
+                    isActive ? 'text-white' : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  <Icon className='w-4 h-4' />
+                  {link.name}
+                </Link>
+              )
+            })}
           </div>
 
           {/* Search Bar */}
@@ -70,34 +75,17 @@ export function Navbar({ userName, userPhoto, showAuth = false, isAdmin = false,
                 type='text'
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder='Cari produk...'
-                className='w-full bg-gray-900 text-white placeholder-gray-400 px-4 py-2 pl-10 rounded-lg border border-gray-700 focus:outline-none focus:border-gray-500 text-sm'
+                placeholder='Cari produk admin...'
+                className='w-full bg-gray-800 text-white placeholder-gray-400 px-4 py-2 pl-10 rounded-lg border border-gray-700 focus:outline-none focus:border-blue-500 text-sm'
               />
               <Search className='absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400' />
             </div>
           </form>
 
-          {/* Right Side - Cart & Auth */}
+          {/* Right Side - Profile */}
           <div className='flex items-center gap-4'>
-            {!isAdmin && (
-              <Link
-                href='/cart'
-                className='flex items-center gap-2 text-gray-300 hover:text-white transition'
-              >
-                <ShoppingCart className='w-5 h-5' />
-                <span className='hidden sm:inline text-sm font-medium'>Keranjang</span>
-              </Link>
-            )}
-
-            {showAuth && userName && (
+            {userName && (
               <>
-                <Link
-                  href='/orders'
-                  className='hidden sm:block text-gray-300 hover:text-white font-medium transition text-sm'
-                >
-                  Pesanan
-                </Link>
-
                 {/* Profile Menu */}
                 <div className='relative'>
                   <button
@@ -123,6 +111,14 @@ export function Navbar({ userName, userPhoto, showAuth = false, isAdmin = false,
                         <p className='text-sm text-white font-medium truncate'>{userName}</p>
                       </div>
                       <Link
+                        href='/'
+                        onClick={() => setProfileMenuOpen(false)}
+                        className='flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition'
+                      >
+                        <LayoutDashboard className='w-4 h-4' />
+                        Ke Toko
+                      </Link>
+                      <Link
                         href='/admin/profile'
                         onClick={() => setProfileMenuOpen(false)}
                         className='flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition'
@@ -130,15 +126,6 @@ export function Navbar({ userName, userPhoto, showAuth = false, isAdmin = false,
                         <User className='w-4 h-4' />
                         Edit Profil
                       </Link>
-                    {isAdmin && (
-                      <Link
-                        href='/admin/products'
-                        onClick={() => setProfileMenuOpen(false)}
-                        className='flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition'
-                      >
-                        Admin
-                      </Link>
-                    )}
                       <button
                         onClick={() => {
                           setProfileMenuOpen(false)
@@ -175,26 +162,30 @@ export function Navbar({ userName, userPhoto, showAuth = false, isAdmin = false,
                   type='text'
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder='Cari produk...'
-                  className='w-full bg-gray-900 text-white placeholder-gray-400 px-4 py-2 pl-10 rounded-lg border border-gray-700 focus:outline-none focus:border-gray-500 text-sm'
+                  placeholder='Cari produk admin...'
+                  className='w-full bg-gray-800 text-white placeholder-gray-400 px-4 py-2 pl-10 rounded-lg border border-gray-700 focus:outline-none focus:border-blue-500 text-sm'
                 />
                 <Search className='absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400' />
               </div>
             </form>
 
-            {/* Mobile Categories */}
+            {/* Mobile Admin Links */}
             <div className='space-y-2'>
-              {categories.map((category) => (
-                <Link
-                  key={category.name}
-                  href={category.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className='block text-gray-300 hover:text-white font-medium py-2 transition'
-                >
-                  {category.name}
-                </Link>
-              ))}
-              {showAuth && userName && (
+              {adminLinks.map((link) => {
+                const Icon = link.icon
+                return (
+                  <Link
+                    key={link.name}
+                    href={link.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className='flex items-center gap-2 text-gray-300 hover:text-white font-medium py-2 transition'
+                  >
+                    <Icon className='w-4 h-4' />
+                    {link.name}
+                  </Link>
+                )
+              })}
+              {userName && (
                 <>
                   <div className='border-t border-gray-800 pt-2 mt-2'>
                     <div className='flex items-center gap-3 py-2'>
@@ -213,11 +204,12 @@ export function Navbar({ userName, userPhoto, showAuth = false, isAdmin = false,
                     </div>
                   </div>
                   <Link
-                    href='/orders'
+                    href='/'
                     onClick={() => setMobileMenuOpen(false)}
-                    className='block text-gray-300 hover:text-white font-medium py-2 transition'
+                    className='flex items-center gap-2 text-gray-300 hover:text-white font-medium py-2 transition'
                   >
-                    Pesanan
+                    <LayoutDashboard className='w-4 h-4' />
+                    Ke Toko
                   </Link>
                   <Link
                     href='/admin/profile'
@@ -226,15 +218,6 @@ export function Navbar({ userName, userPhoto, showAuth = false, isAdmin = false,
                   >
                     Edit Profil
                   </Link>
-                  {isAdmin && (
-                    <Link
-                      href='/admin/products'
-                      onClick={() => setMobileMenuOpen(false)}
-                      className='block text-gray-300 hover:text-white font-medium py-2 transition'
-                    >
-                      Admin
-                    </Link>
-                  )}
                   <button
                     onClick={() => {
                       setMobileMenuOpen(false)
