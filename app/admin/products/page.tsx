@@ -77,7 +77,7 @@ export default function AdminProductsPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4 font-semibold">
-                    ${product.price.toFixed(2)}
+                    Rp {Math.round(Number(product.price)).toLocaleString('id-ID')}
                   </td>
                   <td className="px-6 py-4">{product.stock}</td>
                   <td className="px-6 py-4">{product.category}</td>
