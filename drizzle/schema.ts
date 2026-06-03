@@ -64,6 +64,7 @@ export const user = pgTable("user", {
 	email: text().notNull(),
 	password: text().notNull(),
 	role: text().default('user').notNull(),
+	photo: text(),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 }, (table) => [
 	unique("user_email_unique").on(table.email),

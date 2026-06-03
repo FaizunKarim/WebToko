@@ -53,17 +53,18 @@ export async function getUser() {
     const userId = payload.userId as string
     if (!userId) return null
 
-    const rows = await db
-      .select({
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        createdAt: user.createdAt,
-      })
-      .from(user)
-      .where(eq(user.id, userId))
-      .limit(1)
+  const rows = await db
+    .select({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      photo: user.photo,
+      createdAt: user.createdAt,
+    })
+    .from(user)
+    .where(eq(user.id, userId))
+    .limit(1)
 
     return rows[0] || null
   } catch {

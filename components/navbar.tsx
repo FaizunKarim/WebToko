@@ -1,13 +1,14 @@
 'use client'
 
 import Link from 'next/link'
-import { Search, ShoppingCart, Menu, X } from 'lucide-react'
+import { Search, ShoppingCart, Menu, X, LogOut, User } from 'lucide-react'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 
 interface NavbarProps {
   userName?: string | null
+  userPhoto?: string | null
   showAuth?: boolean
   onLogout?: () => void
 }
@@ -20,15 +21,22 @@ const categories = [
   { name: 'Aksesoris', href: '/products?category=aksesoris' },
 ]
 
-export function Navbar({ userName, showAuth = false, onLogout }: NavbarProps) {
+export function Navbar({ userName, userPhoto, showAuth = false, onLogout }: NavbarProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false)
   const router = useRouter()
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     if (searchQuery.trim()) {
       router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`)
+    }
+  }
+
+  const handleLogout = async () => {
+    if (onLogout) {
+      await onLogout()
     }
   }
 
@@ -86,23 +94,59 @@ export function Navbar({ userName, showAuth = false, onLogout }: NavbarProps) {
                 >
                   Pesanan
                 </Link>
-                <Link
-                  href='/auth'
-                  className='hidden sm:block text-gray-300 hover:text-white font-medium transition text-sm'
-                >
-                  Admin
-                </Link>
-                {onLogout && (
+
+                {/* Profile Menu */}
+                <div className='relative'>
                   <button
-                    onClick={onLogout}
-                    className='hidden sm:block text-gray-300 hover:text-white font-medium transition text-sm'
+                    onClick={() => setProfileMenuOpen(!profileMenuOpen)}
+                    className='flex items-center gap-2 text-gray-300 hover:text-white transition'
                   >
-                    Logout
+                    {userPhoto ? (
+                      <img
+                        src={userPhoto}
+                        alt={userName}
+                        className='w-8 h-8 rounded-full object-cover border-2 border-gray-600'
+                      />
+                    ) : (
+                      <div className='w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center border-2 border-gray-600'>
+                        <User className='w-4 h-4 text-gray-300' />
+                      </div>
+                    )}
                   </button>
-                )}
-                <span className='hidden lg:block text-sm text-gray-400'>
-                  {userName}
-                </span>
+
+                  {profileMenuOpen && (
+                    <div className='absolute right-0 top-full mt-2 w-48 bg-gray-900 border border-gray-700 rounded-lg shadow-lg py-2 z-50'>
+                      <div className='px-4 py-2 border-b border-gray-700'>
+                        <p className='text-sm text-white font-medium truncate'>{userName}</p>
+                      </div>
+                      <Link
+                        href='/admin/profile'
+                        onClick={() => setProfileMenuOpen(false)}
+                        className='flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition'
+                      >
+                        <User className='w-4 h-4' />
+                        Edit Profil
+                      </Link>
+                      <Link
+                        href='/admin/products'
+                        onClick={() => setProfileMenuOpen(false)}
+                        className='flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition'
+                      >
+                        Admin
+                      </Link>
+                      <button
+                        onClick={() => {
+                          setProfileMenuOpen(false)
+                          handleLogout()
+                        }}
+                        className='flex items-center gap-2 w-full px-4 py-2 text-sm text-red-400 hover:bg-gray-800 hover:text-red-300 transition'
+                      >
+                        <LogOut className='w-4 h-4' />
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
               </>
             )}
 
@@ -147,6 +191,22 @@ export function Navbar({ userName, showAuth = false, onLogout }: NavbarProps) {
               ))}
               {showAuth && userName && (
                 <>
+                  <div className='border-t border-gray-800 pt-2 mt-2'>
+                    <div className='flex items-center gap-3 py-2'>
+                      {userPhoto ? (
+                        <img
+                          src={userPhoto}
+                          alt={userName}
+                          className='w-8 h-8 rounded-full object-cover border-2 border-gray-600'
+                        />
+                      ) : (
+                        <div className='w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center border-2 border-gray-600'>
+                          <User className='w-4 h-4 text-gray-300' />
+                        </div>
+                      )}
+                      <span className='text-sm text-white font-medium'>{userName}</span>
+                    </div>
+                  </div>
                   <Link
                     href='/orders'
                     onClick={() => setMobileMenuOpen(false)}
@@ -155,23 +215,28 @@ export function Navbar({ userName, showAuth = false, onLogout }: NavbarProps) {
                     Pesanan
                   </Link>
                   <Link
-                    href='/auth'
+                    href='/admin/profile'
+                    onClick={() => setMobileMenuOpen(false)}
+                    className='block text-gray-300 hover:text-white font-medium py-2 transition'
+                  >
+                    Edit Profil
+                  </Link>
+                  <Link
+                    href='/admin/products'
                     onClick={() => setMobileMenuOpen(false)}
                     className='block text-gray-300 hover:text-white font-medium py-2 transition'
                   >
                     Admin
                   </Link>
-                  {onLogout && (
-                    <button
-                      onClick={() => {
-                        setMobileMenuOpen(false)
-                        onLogout()
-                      }}
-                      className='block text-gray-300 hover:text-white font-medium py-2 transition w-full text-left'
-                    >
-                      Logout
-                    </button>
-                  )}
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false)
+                      handleLogout()
+                    }}
+                    className='block text-red-400 hover:text-red-300 font-medium py-2 transition w-full text-left'
+                  >
+                    Logout
+                  </button>
                 </>
               )}
             </div>
