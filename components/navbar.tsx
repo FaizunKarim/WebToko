@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Search, ShoppingCart, Menu, X } from 'lucide-react'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 
 interface NavbarProps {
   userName?: string | null
@@ -36,8 +37,8 @@ export function Navbar({ userName, showAuth = false, onLogout }: NavbarProps) {
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
         <div className='flex items-center justify-between h-16'>
           {/* Logo */}
-          <Link href='/' className='text-xl font-bold text-white shrink-0'>
-            GERAI FASHION
+          <Link href='/' className='shrink-0'>
+            <Image src='/novi.png' alt='Novi' width={120} height={40} className='h-10 w-auto' />
           </Link>
 
           {/* Desktop Navigation */}

@@ -121,7 +121,7 @@ export function HomeClient({
             <div>
               <h4 className='font-semibold mb-4'>Tentang Kami</h4>
               <p className='text-gray-400 text-sm'>
-                Gerai Fashion adalah toko pakaian online terpercaya dengan koleksi fashion berkualitas tinggi.
+                Novi adalah toko pakaian online terpercaya dengan koleksi fashion berkualitas tinggi.
               </p>
             </div>
             <div>
@@ -151,7 +151,7 @@ export function HomeClient({
             </div>
           </div>
           <div className='border-t border-gray-800 pt-8 text-center text-gray-400 text-sm'>
-            <p>&copy; 2024 Gerai Fashion. Semua hak dilindungi.</p>
+            <p>&copy; 2024 Novi. Semua hak dilindungi.</p>
           </div>
         </div>
       </footer>
