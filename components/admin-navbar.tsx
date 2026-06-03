@@ -111,14 +111,6 @@ export function AdminNavbar({ userName, userPhoto, onLogout }: AdminNavbarProps)
                         <p className='text-sm text-white font-medium truncate'>{userName}</p>
                       </div>
                       <Link
-                        href='/'
-                        onClick={() => setProfileMenuOpen(false)}
-                        className='flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition'
-                      >
-                        <LayoutDashboard className='w-4 h-4' />
-                        Ke Toko
-                      </Link>
-                      <Link
                         href='/admin/profile'
                         onClick={() => setProfileMenuOpen(false)}
                         className='flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition'
@@ -203,14 +195,6 @@ export function AdminNavbar({ userName, userPhoto, onLogout }: AdminNavbarProps)
                       <span className='text-sm text-white font-medium'>{userName}</span>
                     </div>
                   </div>
-                  <Link
-                    href='/'
-                    onClick={() => setMobileMenuOpen(false)}
-                    className='flex items-center gap-2 text-gray-300 hover:text-white font-medium py-2 transition'
-                  >
-                    <LayoutDashboard className='w-4 h-4' />
-                    Ke Toko
-                  </Link>
                   <Link
                     href='/admin/profile'
                     onClick={() => setMobileMenuOpen(false)}
