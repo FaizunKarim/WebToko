@@ -4,7 +4,16 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
+import Script from 'next/script'
 import { CreditCard, Building, Smartphone, Truck, ChevronDown, CheckCircle, ArrowLeft } from 'lucide-react'
+import { getCurrentUser } from '@/app/actions/profile'
+import { createOrder, generateMidtransToken } from '@/app/actions/orders'
+
+declare global {
+  interface Window {
+    snap: any
+  }
+}
 
 interface CartItem {
   id: string
@@ -19,46 +28,11 @@ interface CartItem {
 
 const paymentMethods = [
   {
-    id: 'bca',
-    name: 'Transfer BCA',
-    icon: Building,
-    description: 'Transfer ke rekening BCA',
-    details: 'Bank BCA - 1234567890 a.n. Novi Fashion',
-  },
-  {
-    id: 'mandiri',
-    name: 'Transfer Mandiri',
-    icon: Building,
-    description: 'Transfer ke rekening Mandiri',
-    details: 'Bank Mandiri - 9876543210 a.n. Novi Fashion',
-  },
-  {
-    id: 'bri',
-    name: 'Transfer BRI',
-    icon: Building,
-    description: 'Transfer ke rekening BRI',
-    details: 'Bank BRI - 5678901234 a.n. Novi Fashion',
-  },
-  {
-    id: 'gopay',
-    name: 'GoPay',
-    icon: Smartphone,
-    description: 'Bayar menggunakan GoPay',
-    details: 'Scan QR atau bayar langsung via GoPay',
-  },
-  {
-    id: 'ovo',
-    name: 'OVO',
-    icon: Smartphone,
-    description: 'Bayar menggunakan OVO',
-    details: 'Scan QR atau bayar langsung via OVO',
-  },
-  {
-    id: 'dana',
-    name: 'DANA',
-    icon: Smartphone,
-    description: 'Bayar menggunakan DANA',
-    details: 'Scan QR atau bayar langsung via DANA',
+    id: 'midtrans',
+    name: 'Pembayaran Online (Midtrans)',
+    icon: CreditCard,
+    description: 'Kartu Kredit, GoPay, Transfer Bank, ShopeePay, dll',
+    details: 'Pembayaran aman otomatis diverifikasi secara real-time',
   },
   {
     id: 'cod',
@@ -67,36 +41,46 @@ const paymentMethods = [
     description: 'Bayar saat barang diterima',
     details: 'Tersedia untuk area Jabodetabek',
   },
-  {
-    id: 'kartu',
-    name: 'Kartu Kredit',
-    icon: CreditCard,
-    description: 'Visa, Mastercard, JCB',
-    details: 'Pembayaran aman terenkripsi',
-  },
 ]
 
 export default function CheckoutPage() {
   const router = useRouter()
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [loaded, setLoaded] = useState(false)
+  const [user, setUser] = useState<any>(null)
   const [customerName, setCustomerName] = useState('')
   const [customerPhone, setCustomerPhone] = useState('')
   const [shippingAddress, setShippingAddress] = useState('')
-  const [selectedPayment, setSelectedPayment] = useState('')
+  const [selectedPayment, setSelectedPayment] = useState('midtrans')
   const [processing, setProcessing] = useState(false)
   const [orderComplete, setOrderComplete] = useState(false)
   const [orderId, setOrderId] = useState('')
 
   useEffect(() => {
-    const stored = localStorage.getItem('guest_cart')
-    if (stored) {
+    const initializeCheckout = async () => {
+      // Get user session
       try {
-        const items = JSON.parse(stored)
-        setCartItems(items)
-      } catch {}
+        const currentUser = await getCurrentUser()
+        if (currentUser) {
+          setUser(currentUser)
+          setCustomerName(currentUser.name || '')
+        }
+      } catch (err) {
+        console.error('Failed to get user session:', err)
+      }
+
+      // Load cart
+      const stored = localStorage.getItem('guest_cart')
+      if (stored) {
+        try {
+          const items = JSON.parse(stored)
+          setCartItems(items)
+        } catch {}
+      }
+      setLoaded(true)
     }
-    setLoaded(true)
+
+    initializeCheckout()
   }, [])
 
   const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
@@ -128,14 +112,72 @@ export default function CheckoutPage() {
 
     setProcessing(true)
 
-    // Simulate order processing
-    await new Promise(resolve => setTimeout(resolve, 1500))
+    try {
+      // 1. Create Order in Database
+      const orderRes = await createOrder({
+        shippingAddress,
+        paymentMethod: selectedPayment,
+        customerName,
+        customerPhone,
+        items: cartItems.map(item => ({
+          productId: item.productId,
+          quantity: item.quantity,
+          price: item.price,
+          size: item.size,
+          color: item.color
+        }))
+      })
 
-    const id = `ORDER-${Date.now().toString(36).toUpperCase()}`
-    setOrderId(id)
-    setOrderComplete(true)
-    localStorage.removeItem('guest_cart')
-    setProcessing(false)
+      const newOrderId = orderRes.orderId
+
+      // 2. If Payment Method is Midtrans, generate Token and launch Snap UI
+      if (selectedPayment === 'midtrans') {
+        const midtransRes = await generateMidtransToken(newOrderId, {
+          name: customerName,
+          phone: customerPhone
+        })
+
+        if (!midtransRes?.token) {
+          throw new Error('Gagal mendapatkan token pembayaran Midtrans')
+        }
+
+        if (window.snap) {
+          window.snap.pay(midtransRes.token, {
+            onSuccess: function(result: any) {
+              localStorage.removeItem('guest_cart')
+              router.push(`/orders/${newOrderId}?status=success`)
+            },
+            onPending: function(result: any) {
+              localStorage.removeItem('guest_cart')
+              router.push(`/orders/${newOrderId}?status=pending`)
+            },
+            onError: function(result: any) {
+              alert('Pembayaran gagal atau dibatalkan.')
+              setProcessing(false)
+            },
+            onClose: function() {
+              alert('Anda menutup popup pembayaran sebelum menyelesaikan transaksi. Silakan bayar melalui halaman riwayat pesanan.')
+              localStorage.removeItem('guest_cart')
+              router.push(`/orders/${newOrderId}`)
+            }
+          })
+        } else {
+          // Fallback to Midtrans payment page redirect if Snap is not initialized
+          localStorage.removeItem('guest_cart')
+          window.location.href = midtransRes.redirect_url
+        }
+      } else {
+        // COD path
+        setOrderId(newOrderId)
+        setOrderComplete(true)
+        localStorage.removeItem('guest_cart')
+        setProcessing(false)
+      }
+    } catch (error: any) {
+      console.error('Checkout error:', error)
+      alert(error.message || 'Terjadi kesalahan saat memproses pesanan Anda. Silakan coba lagi.')
+      setProcessing(false)
+    }
   }
 
   if (!loaded) {

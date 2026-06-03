@@ -73,18 +73,18 @@ export default function OrdersPage() {
                   </div>
                   <div className='text-right'>
                     <p className='text-white font-semibold'>
-                      ${order.total_amount.toFixed(2)}
+                      Rp {Math.round(Number(order.totalAmount || order.total_amount || 0)).toLocaleString('id-ID')}
                     </p>
                     <p
-                      className={`text-sm ${
-                        order.status === 'completed'
+                      className={`text-sm font-medium ${
+                        order.status === 'paid' || order.status === 'completed' || order.status === 'success'
                           ? 'text-green-400'
                           : order.status === 'pending'
                             ? 'text-yellow-400'
                             : 'text-red-400'
                       }`}
                     >
-                      {order.status}
+                      {order.status.toUpperCase()}
                     </p>
                   </div>
                 </div>
