@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import { getOrderDetails } from '@/app/actions/orders'
 import Link from 'next/link'
@@ -24,10 +24,30 @@ export default function OrderDetailsPage() {
   const [items, setItems] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [paying, setPaying] = useState(false)
+  const invoiceRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     loadOrderDetails()
   }, [orderId])
+
+  const downloadInvoice = async () => {
+    if (!invoiceRef.current) return
+    try {
+      const html2canvas = (await import('html2canvas')).default
+      const canvas = await html2canvas(invoiceRef.current, {
+        scale: 2, // High resolution capture
+        useCORS: true,
+        backgroundColor: '#ffffff',
+      })
+      const link = document.createElement('a')
+      link.download = `invoice-${orderId}.png`
+      link.href = canvas.toDataURL('image/png')
+      link.click()
+    } catch (error) {
+      console.error('Failed to download invoice:', error)
+      alert('Gagal mengunduh invoice. Silakan coba lagi.')
+    }
+  }
 
   async function loadOrderDetails() {
     try {
@@ -105,58 +125,60 @@ export default function OrderDetailsPage() {
         strategy="lazyOnload"
       />
 
-      <div className="mx-auto max-w-2xl bg-white rounded-xl border border-gray-200 p-6 md:p-8 shadow-sm">
-        <h1 className="mb-6 text-3xl font-bold text-gray-900">Rincian Pesanan</h1>
+      <div className="mx-auto max-w-2xl">
+        {/* Printable/Captureable Invoice area */}
+        <div ref={invoiceRef} className="bg-white rounded-xl border border-gray-200 p-6 md:p-8 shadow-sm mb-6">
+          <h1 className="mb-6 text-3xl font-bold text-gray-900">Rincian Pesanan</h1>
 
-        {paymentStatus === 'success' && (
-          <div className="mb-6 rounded-lg border border-green-200 bg-green-50 p-4 text-green-800">
-            Pembayaran berhasil! Pesanan Anda telah dikonfirmasi.
-          </div>
-        )}
+          {paymentStatus === 'success' && (
+            <div className="mb-6 rounded-lg border border-green-200 bg-green-50 p-4 text-green-800 no-print">
+              Pembayaran berhasil! Pesanan Anda telah dikonfirmasi.
+            </div>
+          )}
 
-        {paymentStatus === 'pending' && (
-          <div className="mb-6 rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-yellow-800">
-            Pembayaran sedang diproses atau pending. Silakan selesaikan pembayaran Anda.
-          </div>
-        )}
+          {paymentStatus === 'pending' && (
+            <div className="mb-6 rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-yellow-800 no-print">
+              Pembayaran sedang diproses atau pending. Silakan selesaikan pembayaran Anda.
+            </div>
+          )}
 
-        <div className="mb-8 space-y-4">
-          <div className="border-b border-gray-100 pb-4">
-            <p className="text-sm text-gray-500">Nomor Pesanan</p>
-            <p className="font-mono font-bold text-gray-900 text-lg">{order.id}</p>
-          </div>
+          <div className="mb-8 space-y-4">
+            <div className="border-b border-gray-100 pb-4">
+              <p className="text-sm text-gray-500">Nomor Pesanan</p>
+              <p className="font-mono font-bold text-gray-900 text-lg">{order.id}</p>
+            </div>
 
-          <div className="grid grid-cols-2 gap-4 border-b border-gray-100 pb-4">
+            <div className="grid grid-cols-2 gap-4 border-b border-gray-100 pb-4">
+              <div>
+                <p className="text-sm text-gray-500">Tanggal Pemesanan</p>
+                <p className="font-medium text-gray-900">
+                  {new Date(order.createdAt).toLocaleDateString('id-ID', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
+                  })}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Status Pembayaran</p>
+                <p className={`font-semibold ${getStatusColor(order.status)}`}>
+                  {order.status.toUpperCase()}
+                </p>
+              </div>
+            </div>
+
+            <div className="border-b border-gray-100 pb-4">
+              <p className="text-sm text-gray-500">Alamat Pengiriman</p>
+              <p className="font-medium text-gray-900 leading-relaxed">{shippingAddress}</p>
+            </div>
+
             <div>
-              <p className="text-sm text-gray-500">Tanggal Pemesanan</p>
+              <p className="text-sm text-gray-500">Metode Pembayaran</p>
               <p className="font-medium text-gray-900">
-                {new Date(order.createdAt).toLocaleDateString('id-ID', {
-                  day: 'numeric',
-                  month: 'long',
-                  year: 'numeric'
-                })}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Status Pesanan</p>
-              <p className={`font-semibold ${getStatusColor(order.status)}`}>
-                {order.status.toUpperCase()}
+                {order.paymentMethod === 'midtrans' ? 'Pembayaran Online (Midtrans)' : 'COD (Bayar di Tempat)'}
               </p>
             </div>
           </div>
-
-          <div className="border-b border-gray-100 pb-4">
-            <p className="text-sm text-gray-500">Alamat Pengiriman</p>
-            <p className="font-medium text-gray-900 leading-relaxed">{shippingAddress}</p>
-          </div>
-
-          <div>
-            <p className="text-sm text-gray-500">Metode Pembayaran</p>
-            <p className="font-medium text-gray-900">
-              {order.paymentMethod === 'midtrans' ? 'Pembayaran Online (Midtrans)' : 'COD (Bayar di Tempat)'}
-            </p>
-          </div>
-        </div>
 
         {/* Timeline Pelacakan Pesanan */}
         <div className="mb-8 bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
@@ -262,15 +284,35 @@ export default function OrderDetailsPage() {
           </div>
         </div>
 
+        </div>
+
         {order.status === 'pending' && order.paymentMethod === 'midtrans' && (
           <button
             onClick={handlePay}
             disabled={paying}
-            className="w-full mb-6 bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-xl shadow-md transition duration-200 disabled:opacity-50"
+            className="w-full mb-6 bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-xl shadow-md transition duration-200 disabled:opacity-50 no-print"
           >
             {paying ? 'Memproses Pembayaran...' : 'Bayar Sekarang'}
           </button>
         )}
+
+        {/* Customer Download and Contact Buttons */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+          <button
+            onClick={downloadInvoice}
+            className="flex items-center justify-center gap-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 font-semibold transition"
+          >
+            📥 Unduh Invoice (Gambar)
+          </button>
+          <a
+            href="https://wa.link/4nnk69"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 font-semibold transition"
+          >
+            💬 Chat Admin (WhatsApp)
+          </a>
+        </div>
 
         <div className="flex gap-4">
           <Link
