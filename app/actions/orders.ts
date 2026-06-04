@@ -152,7 +152,7 @@ export async function createOrder(data: {
 
 export async function generateMidtransToken(
   orderId: string,
-  customerData?: { name?: string; phone?: string },
+  customerData?: { name?: string; phone?: string; email?: string },
   paymentMethod?: string
 ) {
   const userId = await getUserId()
@@ -168,7 +168,7 @@ export async function generateMidtransToken(
 
   // Get user session for email
   const session = await getUser()
-  const userEmail = session?.email || 'customer@example.com'
+  const userEmail = customerData?.email || session?.email || 'customer@example.com'
   const customerName = customerData?.name || session?.name || 'Customer'
   const customerPhone = customerData?.phone || '081234567890'
 

@@ -138,7 +138,7 @@ export default function OrderDetailsPage() {
               </p>
             </div>
             <div>
-              <p className="text-sm text-gray-500">Status Pembayaran</p>
+              <p className="text-sm text-gray-500">Status Pesanan</p>
               <p className={`font-semibold ${getStatusColor(order.status)}`}>
                 {order.status.toUpperCase()}
               </p>
@@ -155,6 +155,80 @@ export default function OrderDetailsPage() {
             <p className="font-medium text-gray-900">
               {order.paymentMethod === 'midtrans' ? 'Pembayaran Online (Midtrans)' : 'COD (Bayar di Tempat)'}
             </p>
+          </div>
+        </div>
+
+        {/* Timeline Pelacakan Pesanan */}
+        <div className="mb-8 bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+          <h2 className="mb-6 text-xl font-bold text-gray-900">Status Pelacakan Pesanan</h2>
+          <div className="relative pl-6 border-l-2 border-gray-200 space-y-8">
+            {/* Step 1: Menunggu Pembayaran */}
+            <div className="relative">
+              <div className={`absolute -left-[31px] top-1.5 w-4 h-4 rounded-full border-2 bg-white ${
+                order.status === 'pending'
+                  ? 'border-yellow-500 ring-4 ring-yellow-100'
+                  : 'border-green-500 bg-green-500'
+              }`} />
+              <div>
+                <p className="font-semibold text-gray-900">Menunggu Pembayaran</p>
+                <p className="text-sm text-gray-500 mt-1">Selesaikan pembayaran Anda menggunakan metode pembayaran yang dipilih.</p>
+                {order.status === 'pending' && (
+                  <span className="inline-block bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-md font-semibold mt-2">SEDANG BERJALAN</span>
+                )}
+              </div>
+            </div>
+
+            {/* Step 2: Pembayaran Berhasil & Diproses */}
+            <div className="relative">
+              <div className={`absolute -left-[31px] top-1.5 w-4 h-4 rounded-full border-2 bg-white ${
+                order.status === 'processing' || order.status === 'paid'
+                  ? 'border-blue-500 ring-4 ring-blue-100'
+                  : order.status === 'pending'
+                    ? 'border-gray-300'
+                    : 'border-green-500 bg-green-500'
+              }`} />
+              <div>
+                <p className={`font-semibold ${order.status === 'pending' ? 'text-gray-400' : 'text-gray-900'}`}>Pembayaran Berhasil & Sedang Diproses</p>
+                <p className="text-sm text-gray-500 mt-1">Pembayaran telah kami terima dan pesanan Anda sedang dikemas oleh tim kami.</p>
+                {(order.status === 'processing' || order.status === 'paid') && (
+                  <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-md font-semibold mt-2">SEDANG BERJALAN</span>
+                )}
+              </div>
+            </div>
+
+            {/* Step 3: Sedang Dikirim */}
+            <div className="relative">
+              <div className={`absolute -left-[31px] top-1.5 w-4 h-4 rounded-full border-2 bg-white ${
+                order.status === 'shipped'
+                  ? 'border-purple-500 ring-4 ring-purple-100'
+                  : (order.status === 'pending' || order.status === 'processing' || order.status === 'paid')
+                    ? 'border-gray-300'
+                    : 'border-green-500 bg-green-500'
+              }`} />
+              <div>
+                <p className={`font-semibold ${(order.status === 'pending' || order.status === 'processing' || order.status === 'paid') ? 'text-gray-400' : 'text-gray-900'}`}>Sedang Dikirim</p>
+                <p className="text-sm text-gray-500 mt-1">Pesanan Anda telah diserahkan ke kurir dan dalam perjalanan ke alamat Anda.</p>
+                {order.status === 'shipped' && (
+                  <span className="inline-block bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-md font-semibold mt-2">SEDANG BERJALAN</span>
+                )}
+              </div>
+            </div>
+
+            {/* Step 4: Selesai */}
+            <div className="relative">
+              <div className={`absolute -left-[31px] top-1.5 w-4 h-4 rounded-full border-2 bg-white ${
+                order.status === 'completed'
+                  ? 'border-green-500 bg-green-500 ring-4 ring-green-100'
+                  : 'border-gray-300'
+              }`} />
+              <div>
+                <p className={`font-semibold ${order.status !== 'completed' ? 'text-gray-400' : 'text-gray-900'}`}>Selesai</p>
+                <p className="text-sm text-gray-500 mt-1">Paket telah sampai di tujuan dan diterima dengan baik.</p>
+                {order.status === 'completed' && (
+                  <span className="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded-md font-semibold mt-2">SELESAI</span>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 

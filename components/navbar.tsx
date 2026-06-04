@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { Search, ShoppingCart, Menu, X, LogOut, User } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Image from 'next/image'
 
@@ -29,9 +29,16 @@ export function Navbar({ userName, userPhoto, showAuth = false, isAdmin = false,
   const router = useRouter()
   const pathname = usePathname()
 
+  // Intercept and redirect admins away from public pages
+  useEffect(() => {
+    if (isAdmin && pathname !== '/auth' && !pathname.startsWith('/admin')) {
+      router.push('/admin/products')
+    }
+  }, [isAdmin, pathname, router])
+
   // Don't render navbar on auth pages or admin pages
   if (pathname === '/auth' || pathname.startsWith('/admin/') || pathname === '/admin') {
-    return null
+    return null;
   }
 
   const handleSearch = (e: React.FormEvent) => {

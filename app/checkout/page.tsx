@@ -84,6 +84,7 @@ export default function CheckoutPage() {
   const [loaded, setLoaded] = useState(false)
   const [user, setUser] = useState<any>(null)
   const [customerName, setCustomerName] = useState('')
+  const [customerEmail, setCustomerEmail] = useState('')
   const [customerPhone, setCustomerPhone] = useState('')
   const [shippingAddress, setShippingAddress] = useState('')
   const [selectedPayment, setSelectedPayment] = useState('bca_va')
@@ -99,6 +100,7 @@ export default function CheckoutPage() {
         if (currentUser) {
           setUser(currentUser)
           setCustomerName(currentUser.name || '')
+          setCustomerEmail(currentUser.email || '')
         }
       } catch (err) {
         console.error('Failed to get user session:', err)
@@ -127,6 +129,11 @@ export default function CheckoutPage() {
 
     if (!customerName.trim()) {
       alert('Silakan isi nama lengkap')
+      return
+    }
+
+    if (!customerEmail.trim()) {
+      alert('Silakan isi alamat email')
       return
     }
 
@@ -169,7 +176,8 @@ export default function CheckoutPage() {
       if (selectedPayment !== 'cod') {
         const midtransRes = await generateMidtransToken(newOrderId, {
           name: customerName,
-          phone: customerPhone
+          phone: customerPhone,
+          email: customerEmail
         }, selectedPayment)
 
         if (!midtransRes?.token) {
@@ -329,6 +337,19 @@ export default function CheckoutPage() {
                         value={customerName}
                         onChange={(e) => setCustomerName(e.target.value)}
                         placeholder="John Doe"
+                        className='w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-900'
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className='block text-sm font-medium text-gray-700 mb-2'>
+                        Alamat Email <span className='text-red-500'>*</span>
+                      </label>
+                      <input
+                        type='email'
+                        value={customerEmail}
+                        onChange={(e) => setCustomerEmail(e.target.value)}
+                        placeholder="johndoe@example.com"
                         className='w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-900'
                         required
                       />
